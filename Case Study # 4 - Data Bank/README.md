@@ -34,4 +34,14 @@ The following case study questions include some general data exploration analysi
 ## Case Study Solutions
 ### A. Customer Nodes Exploration
 #### 1. How many unique nodes are there on the Data Bank system?
+```sql
+SELECT 
+	COUNT(DISTINCT node_id) AS unique_nodes
+FROM data_bank.customer_nodes;
+```
+Result:
+
+| unique_nodes |
+| ------------ |
+| 5            |
 
