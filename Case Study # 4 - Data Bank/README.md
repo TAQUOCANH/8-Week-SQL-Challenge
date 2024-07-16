@@ -5,11 +5,8 @@
 View the case study [here](https://8weeksqlchallenge.com/case-study-4/)
   
 ## Table Of Contents
-  - [#A. Customer Nodes Exploration](https://github.com/TAQUOCANH/8-Week-SQL-Challenge/blob/main/Case%20Study%20%23%204%20-%20Data%20Bank/README.md#a-customer-nodes-exploration)
-  - [Problem Statement](#problem-statement)
-  - [Datasets used](#datasets-used)
-  - [Entity Relationship Diagram](#entity-relationship-diagram)
-  - [Case Study Solutions](#case-study-solutions)
+  - [A. Customer Nodes Exploration](https://github.com/TAQUOCANH/8-Week-SQL-Challenge/blob/main/Case%20Study%20%23%204%20-%20Data%20Bank/README.md#a-customer-nodes-exploration)
+  - 
   
 ## Introduction
 There is a new innovation in the financial industry called Neo-Banks: new aged digital only banks without physical branches.
