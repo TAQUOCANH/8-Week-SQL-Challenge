@@ -5,7 +5,7 @@
 View the case study [here](https://8weeksqlchallenge.com/case-study-4/)
   
 ## Table Of Contents
-  - [Customer Nodes Exploration](### A. Customer Nodes Exploration)
+  - [Customer Nodes Exploration](#A. Customer Nodes Exploration)
   - [Problem Statement](#problem-statement)
   - [Datasets used](#datasets-used)
   - [Entity Relationship Diagram](#entity-relationship-diagram)
