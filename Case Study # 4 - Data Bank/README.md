@@ -90,6 +90,16 @@ Result:
 | 5         | Europe      | 88             |
 
 #### 4. How many days on average are customers reallocated to a different node?
+```sql
+SELECT ROUND(AVG(DATEDIFF(end_date, start_date)), 2) AS avg_days
+FROM data_bank.customer_nodes
+WHERE end_date!='9999-12-31';
+```
+**Result:**
+
+| avg_days |
+| ------------ |
+| 14.63        |
 
 
 
