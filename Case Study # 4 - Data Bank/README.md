@@ -45,3 +45,52 @@ Result:
 | ------------ |
 | 5            |
 
+#### 2. What is the number of nodes per region?
+```sql
+SELECT
+	region_id
+	,region_name
+    , COUNT(node_id) AS n_of_nodes
+FROM data_bank.customer_nodes
+LEFT JOIN data_bank.regions
+USING(region_id)
+GROUP BY region_id, region_name;
+```
+
+Result:
+
+| region_id | region_name | n_of_nodes |
+| --------- | ----------- | ---------- |
+| 2         | America     | 735        |
+| 5         | Europe      | 616        |
+| 3         | Africa      | 714        |
+| 4         | Asia        | 665        |
+| 1         | Australia   | 770        |
+
+#### 3. How many customers are allocated to each region?
+```sql
+SELECT
+	region_id
+	,region_name
+    , COUNT(DISTINCT customer_id) AS n_of_customers
+FROM data_bank.customer_nodes 
+LEFT JOIN data_bank.regions
+USING(region_id)
+GROUP BY region_id, region_name;
+```
+
+Result:
+
+| region_id | region_name | n_of_customers |
+| --------- | ----------- | -------------- |
+| 1         | Australia   | 110            |
+| 2         | America     | 105            |
+| 3         | Africa      | 102            |
+| 4         | Asia        | 95             |
+| 5         | Europe      | 88             |
+
+#### 4. How many days on average are customers reallocated to a different node?
+
+
+
+#### 5. What is the median, 80th and 95th percentile for this same reallocation days metric for each region?
