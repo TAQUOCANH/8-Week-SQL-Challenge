@@ -102,5 +102,94 @@ WHERE end_date!='9999-12-31';
 | 14.63        |
 
 
-
 #### 5. What is the median, 80th and 95th percentile for this same reallocation days metric for each region?
+
+
+```sql
+WITH reallocation_days_cte AS(
+SELECT
+	*
+	,(DATEDIFF(end_date, start_date)) AS reallocation_days
+FROM customer_nodes
+INNER JOIN regions USING (region_id)
+WHERE end_date!='9999-12-31')
+
+,percentile_cte AS(
+SELECT
+	*
+	,percent_rank() over(PARTITION BY region_id
+                              ORDER BY reallocation_days)*100 AS p
+FROM reallocation_days_cte)
+```
+
+
+
+**Median:**
+
+```sql
+SELECT
+	region_id
+       ,region_name,
+       ,reallocation_days
+FROM percentile_cte
+WHERE p >50
+GROUP BY region_id;
+```
+
+**Result:**
+
+| region_id | region_name | reallocation_days |
+| --------- | ----------- | ----------------- |
+| 1         | Australia   | 16                |
+| 2         | America     | 16                |
+| 3         | Africa      | 16                |
+| 4         | Asia        | 16                |
+| 5         | Europe      | 16                |
+
+
+**80th percentile:**
+
+```sql
+SELECT
+	region_id
+       ,region_name,
+       ,reallocation_days
+FROM percentile_cte
+WHERE p >80
+GROUP BY region_id;
+```
+
+| region_id | region_name | reallocation_days |
+| --------- | ----------- | ----------------- |
+| 1         | Australia   | 24                |
+| 2         | America     | 24                |
+| 3         | Africa      | 25                |
+| 4         | Asia        | 24                |
+| 5         | Europe      | 25                |
+
+**95th percentile:**
+
+```sql
+SELECT
+	region_id
+       ,region_name,
+       ,reallocation_days
+FROM percentile_cte
+WHERE p >95
+GROUP BY region_id;
+```
+
+| region_id | region_name | reallocation_days |
+| --------- | ----------- | ----------------- |
+| 1         | Australia   | 29                |
+| 2         | America     | 29                |
+| 3         | Africa      | 29                |
+| 4         | Asia        | 29                |
+| 5         | Europe      | 29                |
+
+
+
+
+
+
+
