@@ -310,5 +310,61 @@ Showing results for customers ID 1, 2 and 3 only:
 | 3           | 2020-01-31T00:00:00.000Z   | 144             |
 
 
+#### 5. What is the percentage of customers who increase their closing balance by more than 5%?
+```sql
+WITH in_out_flow AS (
+SELECT 
+		DATE_TRUNC('month',txn_date) AS txn_month
+		, txn_date
+		, customer_id
+		, SUM(CASE WHEN txn_type ='deposit' THEN txn_amount ELSE -txn_amount END) AS balance
+FROM data_bank.customer_transactions
+GROUP BY DATE_TRUNC('month',txn_date), txn_date, customer_id
+)
 
+, BALANCES AS (
+SELECT 
+		*
+		,SUM(balance) OVER (PARTITION BY customer_id ORDER BY txn_date) as running_sum
+		,ROW_NUMBER() OVER (PARTITION BY customer_id, txn_month ORDER BY txn_date DESC) as rn
+FROM in_out_flow
+ORDER BY txn_date
+)
+
+
+,closing_balance_data AS(
+SELECT 
+customer_id,
+(DATE_TRUNC('month', txn_date) + INTERVAL '1 MONTH - 1 DAY') AS closing_month,
+running_sum as closing_balance
+FROM BALANCES 
+WHERE rn = 1
+ORDER BY customer_id
+)
+ 
+,following_balance_data AS(
+SELECT 
+	*
+    , lEAD(closing_balance) OVER(PARTITION BY customer_id ORDER BY closing_month) AS following_balance
+
+FROM closing_balance_data
+)
+
+,change_of_balance AS(
+  
+SELECT 
+	*
+    , ROUND((following_balance - closing_balance) *100.0 / NULLIF(closing_balance, 0)) AS change_of_balance
+
+FROM following_balance_data
+GROUP BY customer_id, closing_month, closing_balance, following_balance
+HAVING ROUND((following_balance - closing_balance) *100.0 / NULLIF(closing_balance, 0)) > 5 
+)
+
+SELECT
+	COUNT(DISTINCT customer_id)
+	-- ROUND(100.0 * COUNT(DISTINCT customer_id)/ (SELECT COUNT(DISTINCT customer_id) 
+	-- FROM closing_balance_data),1) AS n_of_cus_increase_more_than_5
+FROM change_of_balance
+```
 
