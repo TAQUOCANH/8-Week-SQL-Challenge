@@ -194,8 +194,8 @@ GROUP BY region_id;
 ```sql
 SELECT 
 	txn_type
-    ,COUNT(*) AS unique_count
-    ,SUM(txn_amount) AS total_amont
+    	,COUNT(*) AS unique_count
+    	,SUM(txn_amount) AS total_amont
 FROM data_bank.customer_transactions
 GROUP BY txn_type;
 ```
@@ -238,8 +238,8 @@ WITH monthly_transactions AS (
   SELECT 
     customer_id, 
     DATE_PART('month', txn_date) AS month,
-    SUM(CASE WHEN txn_type = 'deposit' THEN 0 ELSE 1 END) AS deposit_count,
-    SUM(CASE WHEN txn_type = 'purchase' THEN 0 ELSE 1 END) AS purchase_count,
+    SUM(CASE WHEN txn_type = 'deposit' THEN 1 ELSE 0 END) AS deposit_count,
+    SUM(CASE WHEN txn_type = 'purchase' THEN 1 ELSE 0 END) AS purchase_count,
     SUM(CASE WHEN txn_type = 'withdrawal' THEN 1 ELSE 0 END) AS withdrawal_count
   FROM data_bank.customer_transactions
   GROUP BY customer_id, DATE_PART('month', txn_date)
@@ -258,10 +258,10 @@ ORDER BY month;
 
 |month|customer_count|
 |:----|:----|
-|1|170|
-|2|277|
-|3|292|
-|4|103|
+|1|168|
+|2|181|
+|3|192|
+|4|70|
 
 #### 4. What is the closing balance for each customer at the end of the month?
 
