@@ -265,63 +265,49 @@ ORDER BY month;
 
 #### 4. What is the closing balance for each customer at the end of the month?
 ```sql
--- CTE 1 - To identify transaction amount as an inflow (+) or outflow (-)
-WITH monthly_balances_cte AS (
-  SELECT 
-    customer_id, 
-    (DATE_TRUNC('month', txn_date) + INTERVAL '1 MONTH - 1 DAY') AS closing_month, 
-    SUM(CASE 
-      WHEN txn_type = 'withdrawal' OR txn_type = 'purchase' THEN -txn_amount
-      ELSE txn_amount END) AS transaction_balance
-  FROM data_bank.customer_transactions
-  GROUP BY 
-    customer_id, txn_date 
-)
-
--- CTE 2 - Use GENERATE_SERIES() to generate as a series of last day of the month for each customer.
-, monthend_series_cte AS (
-  SELECT
-    DISTINCT customer_id,
-    ('2020-01-31'::DATE + GENERATE_SERIES(0,3) * INTERVAL '1 MONTH') AS ending_month
-  FROM data_bank.customer_transactions
-)
-
--- CTE 3 - Calculate total monthly change and ending balance for each month using window function SUM()
-, monthly_changes_cte AS (
+WITH in_out_flow AS (
 SELECT 
-    monthend_series_cte.customer_id
-    , monthend_series_cte.ending_month
-    , transaction_balance
-    , SUM(monthly_balances_cte.transaction_balance) OVER (
-      PARTITION BY monthend_series_cte.customer_id, monthend_series_cte.ending_month
-      ORDER BY monthend_series_cte.ending_month
-    ) AS total_monthly_change
-	, SUM(monthly_balances_cte.transaction_balance) OVER (
-      PARTITION BY monthend_series_cte.customer_id 
-      ORDER BY monthend_series_cte.ending_month
-      ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-    ) AS ending_balance
-FROM monthend_series_cte
-  LEFT JOIN monthly_balances_cte
-    ON monthend_series_cte.ending_month = monthly_balances_cte.closing_month
-    AND monthend_series_cte.customer_id = monthly_balances_cte.customer_id
-ORDER BY customer_id, ending_month
+		DATE_TRUNC('month',txn_date) AS txn_month
+		, txn_date
+		, customer_id
+		, SUM(CASE WHEN txn_type ='deposit' THEN txn_amount ELSE -txn_amount END) AS balance
+FROM data_bank.customer_transactions
+GROUP BY DATE_TRUNC('month',txn_date), txn_date, customer_id
 )
 
--- Final query: Display the output of customer monthly statement with the ending balances. 
+, BALANCES AS (
 SELECT 
-customer_id, 
-  ending_month, 
-  COALESCE(total_monthly_change, 0) AS total_monthly_change, 
-  MIN(ending_balance) AS ending_balance
- FROM monthly_changes_cte
- GROUP BY 
-  customer_id, ending_month, total_monthly_change
- ORDER BY 
-  customer_id, ending_month;
+		*
+		,SUM(balance) OVER (PARTITION BY customer_id ORDER BY txn_date) as running_sum
+		,ROW_NUMBER() OVER (PARTITION BY customer_id, txn_month ORDER BY txn_date DESC) as rn
+FROM in_out_flow
+ORDER BY txn_date
+)
+
+SELECT 
+customer_id,
+txn_month,
+running_sum as closing_balance
+FROM BALANCES 
+WHERE rn = 1
+ORDER BY 1;
 
 ```
 
+**Result:**
+
+Showing results for customers ID 1, 2 and 3 only:
+
+| customer_id | txn_month | net_transaction_amt | closing_balance |
+|-------------|-----------|---------------------|-----------------|
+| 1           | 1         | 312                 | 312             |
+| 1           | 3         | -952                | -640            |
+| 2           | 1         | 549                 | 549             |
+| 2           | 3         | 61                  | 610             |
+| 3           | 1         | 144                 | 144             |
+| 3           | 2         | -965                | -821            |
+| 3           | 3         | -401                | -1222           |
+| 3           | 4         | 493                 | -729            |
 
 
 
