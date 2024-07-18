@@ -286,11 +286,11 @@ ORDER BY txn_date
 
 SELECT 
 customer_id,
-txn_month,
+(DATE_TRUNC('month', txn_date) + INTERVAL '1 MONTH - 1 DAY') AS closing_month,
 running_sum as closing_balance
 FROM BALANCES 
 WHERE rn = 1
-ORDER BY 1;
+ORDER BY customer_id;
 
 ```
 
@@ -298,16 +298,16 @@ ORDER BY 1;
 
 Showing results for customers ID 1, 2 and 3 only:
 
-| customer_id | txn_month | net_transaction_amt | closing_balance |
-|-------------|-----------|---------------------|-----------------|
-| 1           | 1         | 312                 | 312             |
-| 1           | 3         | -952                | -640            |
-| 2           | 1         | 549                 | 549             |
-| 2           | 3         | 61                  | 610             |
-| 3           | 1         | 144                 | 144             |
-| 3           | 2         | -965                | -821            |
-| 3           | 3         | -401                | -1222           |
-| 3           | 4         | 493                 | -729            |
+| customer_id | closing_month              | closing_balance |
+|-------------|----------------------------|-----------------|
+| 1           | 2020-01-31T00:00:00.000Z   | 312             |
+| 1           | 2020-03-31T00:00:00.000Z   | -640            |
+| 2           | 2020-01-31T00:00:00.000Z   | 549             |
+| 2           | 2020-03-31T00:00:00.000Z   | 610             |
+| 3           | 2020-02-29T00:00:00.000Z   | -821            |
+| 3           | 2020-03-31T00:00:00.000Z   | -1222           |
+| 3           | 2020-04-30T00:00:00.000Z   | -729            |
+| 3           | 2020-01-31T00:00:00.000Z   | 144             |
 
 
 
