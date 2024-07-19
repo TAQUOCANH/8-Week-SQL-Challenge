@@ -400,3 +400,52 @@ SELECT
 FROM running_total_data
 GROUP BY customer_id; 
 ```
+
+
+```sql
+WITH AmountCte AS (
+   SELECT 
+   	customer_id,
+   	EXTRACT(MONTH from txn_date) AS month,
+  	txn_date,
+   	CASE
+   		WHEN txn_type = 'deposit' THEN txn_amount
+   		WHEN txn_type = 'purchase' THEN -txn_amount
+   		WHEN txn_type = 'withdrawal' THEN -txn_amount END as amount
+   FROM data_bank.customer_transactions
+   ORDER BY customer_id, month
+),
+RunningBalance AS (
+   SELECT 
+   	*,
+   	SUM(amount) OVER (PARTITION BY customer_id ORDER BY txn_date) AS running_balance,
+  	ROW_NUMBER() OVER (PARTITION BY customer_id, month ORDER BY txn_date DESC) as rn
+   FROM AmountCte
+)
+
+,closing_balance_data AS(
+SELECT 
+	*
+FROM RunningBalance 
+ WHERE rn = 1
+ORDER BY customer_id
+) 
+
+
+
+,MonthlyAllocation AS(
+   SELECT 
+   	*,
+   	LAG(running_balance, 1) OVER(PARTITION BY customer_id 
+   								 ORDER BY customer_id, month) AS monthly_allocation
+   FROM closing_balance_data
+)
+
+
+SELECT 
+   month,
+   SUM(monthly_allocation) AS total_allocation
+FROM MonthlyAllocation
+GROUP BY month
+ORDER BY month;
+```
