@@ -368,3 +368,35 @@ SELECT
 FROM change_of_balance
 ```
 
+
+
+
+```sql
+WITH AmountCte AS (
+   SELECT 
+   	customer_id,
+  	txn_date,
+   	EXTRACT(MONTH from txn_date) AS month,
+   	CASE
+   		WHEN txn_type = 'deposit' THEN txn_amount
+   		WHEN txn_type = 'purchase' THEN -txn_amount
+   		WHEN txn_type = 'withdrawal' THEN -txn_amount END as amount
+   FROM data_bank.customer_transactions
+   ORDER BY customer_id, month
+)
+
+, running_total_data AS(
+ 	SELECT
+  		*
+  		, SUM(amount) OVER(PARTITION BY customer_id ORDER BY txn_date 
+   			 ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS running_total
+  	FROM AmountCte)
+
+SELECT 
+   customer_id, 
+   MIN(running_total) AS min_running_total,
+   AVG(running_total) AS avg_running_total,
+   MAX(running_total) AS max_running_total
+FROM running_total_data
+GROUP BY customer_id; 
+```
